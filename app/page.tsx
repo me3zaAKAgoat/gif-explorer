@@ -60,13 +60,11 @@ export default function Home() {
       }
     };
 
-    // if (debouncedQuery) {
     fetchAndSetGifs();
-    // }
   }, [debouncedQuery]);
 
   return (
-    <main className="h-full w-full flex flex-col gap-2 items-center justify-start pt-3 bg-black">
+    <main className="h-full w-full flex flex-col gap-2 items-center justify-start pt-3">
       <div className="flex gap-5 px-4 py-3">
         <input
           type="text"
@@ -77,38 +75,44 @@ export default function Home() {
           placeholder="Search for a gif..."
         />
       </div>
+      {gifs.length === 0 && !error && (
+        <p className="text-white font-bold">Loading</p>
+      )}
       {error && <p className="text-red-500 font-bold">{error}</p>}
       <ul className="h-full w-full flex flex-wrap justify-center gap-2 py-10  pb-12">
         {gifs.map((gif) => (
           <li
             key={gif.images.original.url}
             className={`flex w-[40vw] sm:w-[22vw] ${
-              gif === selected ? "sm:w-[89.5vw]" : ""
+              gif === selected ? "w-[82vw] sm:w-[89.5vw]" : ""
             }`}
           >
             <img
               src={gif.images.original.url}
               className={`w-full h-full rounded-md cursor-pointer ${
-                selected === gif ? "w-1/2" : ""
+                selected === gif ? "w-1/2 object-contain" : ""
               }`}
               alt="gif"
               onClick={() => {
-                setSelected(gif);
+                if (selected === gif) {
+                  setSelected(null);
+                } else setSelected(gif);
               }}
             />
             {selected === gif && (
-              <div className="flex flex-col justify-between items-start grow p-4">
+              <div className="flex flex-col justify-between items-start w-1/2 p-4">
                 <button
                   onClick={() => setSelected(null)}
-                  className="bg-red-500 text-white px-2 py-1 rounded-md text-2xl"
+                  className="bg-red-500 text-white px-2 py-1 rounded-md sm:text-2xl"
                 >
                   Close
                 </button>
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(gif.images.original.url);
+                    alert("Copied to clipboard");
                   }}
-                  className="bg-blue-500 text-white px-2 py-1 rounded-md text-2xl"
+                  className="bg-blue-500 text-white px-2 py-1 rounded-md sm:text-2xl"
                 >
                   Copy GIF URL
                 </button>
@@ -116,21 +120,21 @@ export default function Home() {
                   onClick={() => {
                     setQuery(gif.title);
                   }}
-                  className="bg-green-500 text-white px-2 py-1 rounded-md text-2xl"
+                  className="bg-green-500 text-white px-2 py-1 rounded-md sm:text-2xl"
                 >
                   Search for similar GIFs
                 </button>
                 <div>
-                  <label className="text-white text-2xl font-bold">
+                  <label className="text-white sm:text-2xl font-bold">
                     Username:
                   </label>
-                  <p className="text-white text-2xl">{gif.username}</p>
+                  <p className="text-white sm:text-2xl">{gif.username}</p>
                 </div>
                 <div>
-                  <label className="text-white text-2xl font-bold">
+                  <label className="text-white sm:text-2xl font-bold">
                     Imported on:
                   </label>
-                  <p className="text-white text-2xl">
+                  <p className="text-white sm:text-2xl">
                     {new Date(gif.import_datetime).toLocaleString()}
                   </p>
                 </div>

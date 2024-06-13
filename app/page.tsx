@@ -10,15 +10,17 @@ interface Gif {
       url: string;
     };
   };
+  [key: string]: any;
 }
 
 export default function Home() {
-  const [gifs, setGifs] = useState<string[]>([]);
+  const [gifs, setGifs] = useState<Gif[]>([]);
   const [query, setQuery] = useState<string>("");
   const debouncedQuery = useDebounce(query, 800);
   const [error, setError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Gif | null>(null);
 
-  const fetchGifs = useCallback(async (query: string): Promise<string[]> => {
+  const fetchGifs = useCallback(async (query: string) => {
     let response;
 
     if (!query) {
@@ -44,8 +46,7 @@ export default function Home() {
         (a, b) =>
           new Date(a.import_datetime).getTime() -
           new Date(b.import_datetime).getTime()
-      )
-      .map((gif) => gif.images.original.url);
+      );
   }, []);
 
   useEffect(() => {
@@ -65,25 +66,76 @@ export default function Home() {
   }, [debouncedQuery]);
 
   return (
-    <main className="h-full w-full flex flex-col gap-2 items-center justify-start py-3 pb-12">
-      <div className="flex gap-5 px-4">
-        <label htmlFor="search" className="font-bold">
-          Search for gifs:
-        </label>
+    <main className="h-full w-full flex flex-col gap-2 items-center justify-start pt-3 bg-black">
+      <div className="flex gap-5 px-4 py-3">
         <input
           type="text"
           id="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="px-2 border border-black rounded-md"
-          placeholder="Type your search term..."
+          className="px-2 py-2 border border-black rounded-md"
+          placeholder="Search for a gif..."
         />
       </div>
       {error && <p className="text-red-500 font-bold">{error}</p>}
-      <ul className="h-full w-full flex flex-wrap justify-center gap-2 py-10 bg-gray-500">
+      <ul className="h-full w-full flex flex-wrap justify-center gap-2 py-10  pb-12">
         {gifs.map((gif) => (
-          <li key={gif} className="w-[40vw] sm:w-[22vw]">
-            <img src={gif} className="w-full h-full rounded-md" alt="gif" />
+          <li
+            key={gif.images.original.url}
+            className={`flex w-[40vw] sm:w-[22vw] ${
+              gif === selected ? "sm:w-[89.5vw]" : ""
+            }`}
+          >
+            <img
+              src={gif.images.original.url}
+              className={`w-full h-full rounded-md cursor-pointer ${
+                selected === gif ? "w-1/2" : ""
+              }`}
+              alt="gif"
+              onClick={() => {
+                setSelected(gif);
+              }}
+            />
+            {selected === gif && (
+              <div className="flex flex-col justify-between items-start grow p-4">
+                <button
+                  onClick={() => setSelected(null)}
+                  className="bg-red-500 text-white px-2 py-1 rounded-md text-2xl"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(gif.images.original.url);
+                  }}
+                  className="bg-blue-500 text-white px-2 py-1 rounded-md text-2xl"
+                >
+                  Copy GIF URL
+                </button>
+                <button
+                  onClick={() => {
+                    setQuery(gif.title);
+                  }}
+                  className="bg-green-500 text-white px-2 py-1 rounded-md text-2xl"
+                >
+                  Search for similar GIFs
+                </button>
+                <div>
+                  <label className="text-white text-2xl font-bold">
+                    Username:
+                  </label>
+                  <p className="text-white text-2xl">{gif.username}</p>
+                </div>
+                <div>
+                  <label className="text-white text-2xl font-bold">
+                    Imported on:
+                  </label>
+                  <p className="text-white text-2xl">
+                    {new Date(gif.import_datetime).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            )}
           </li>
         ))}
       </ul>
